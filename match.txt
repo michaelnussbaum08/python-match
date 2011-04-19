@@ -1,0 +1,11 @@
+the match function should take a string to match on and an ordered dictionary that maps objects to match on and at string of code to be evaluated.  The only magic that would need to happen is binding variables specified in the match objects that are the keys.  So, hard part of match objects needs to convert from an input to a key.
+
+Maybe do some sort of format string to specify variables to bind.  Different keyword args to specify different kinds of match, regexp, pat, function, etc.
+
+Match object would use input to make the most general regex possible given the input.  Some of the args would be used to make this regex, but not all.  Some of the args would be used as more qualifiers, as in, only match if the regex fits and the word in x position causes a certain function to return true.  For "and" and "or" maybe allow a list of strings to make different regexs out of.  
+
+This will require messing with a format string.  Basically I want to define a new token that will be a wild card in the regex and means that the word in that position should be bound to its format keyword as long as the value associated with the keyword returns True, this value should be a function that takes one argument which will be the word at the position of the token in the string.  If the value doesn't return true then even if the regex matches the pattern does not match.
+
+No easy way to manipulate format strings.  So I'd have the format string (with tokens) and the formatters come in as two different arguments, and have an error raise if they don't match arity.  The normal string formatters will go in first, then string (which will already be shown to be identical except for remaining wildcards due to regex) will be parsed, the words filling the new tokens pulled out and then applied to the remaining formatters, binding variables if successful.
+
+If a match is found then the associated code is evaluated with the newly bound keywords and old env and the result is returned.
