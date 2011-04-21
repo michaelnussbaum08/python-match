@@ -3,6 +3,8 @@ import re
 #TODO: lots of error checking, making sure same amounts of things, proper types
 
 def match(match_on, cases):
+    '''string, ordered dictionary mapping MatchKey objects
+    to strings of python code -> void, executes matching code'''
     for case, consequence in cases.items():
         match_result = case.is_match(match_on)
         if match_result[0]:
@@ -10,11 +12,17 @@ def match(match_on, cases):
             locals().update(new_vars)
             exec(consequence)
 
-
 class MatchKey(object):
+    '''To be used as a dictionary key in the match function.
+    Uses a pattern string to define a regex to match on.
+    Identifies values identified by "%M" tokens in the pattern,
+    which are represented as wildcards in the regex, so that
+    they can be bound as variables.'''
 
     def __init__(self, pattern, sub_ins, to_binds):
-        '''string, list, list'''
+        '''string, list of strings, list of strings
+        Strings in sub_ins will be subbed in for '%s' tokens.
+        Strings in to_binds will be variable names.'''
         self._to_binds = to_binds
         self._subbed_in = self._normal_sub(pattern, sub_ins)
         self._char_indices_to_bind = [m.start() for m in \
