@@ -1,7 +1,15 @@
 import re
 
 #TODO: lots of error checking, making sure same amounts of things, proper types
-#including checking if to_bind var names are unique and not already bound
+
+def match(match_on, cases):
+    for case, consequence in cases.items():
+        match_result = case.is_match(match_on)
+        if match_result[0]:
+            new_vars = match_result[1]
+            locals().update(new_vars)
+            exec(consequence)
+
 
 class MatchKey(object):
 
@@ -42,8 +50,6 @@ class MatchKey(object):
     def _get_next_word(self, words, start_index):
         '''string, integer -> string'''
         total_index = None
-        print words
-        print start_index
         for index, char in enumerate(words[start_index:]):
             total_index = index + start_index
             if char == ' ':
@@ -79,7 +85,6 @@ class MatchKey(object):
     def _get_key(self):
         '''void -> string
         Replaces %M in _subbed_in with regex wildcards'''
-        #TODO: pull out keywords and bind them
         match_string = ''
         char_index = 0
         while char_index < len(self._subbed_in):
