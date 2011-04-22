@@ -1,5 +1,8 @@
 import re
 
+from errors import MatchError
+
+#TODO: allow functions that determine whether a variable is acceptable
 #TODO: lots of error checking, making sure same amounts of things, proper types
 
 def match(match_on, cases):
@@ -31,7 +34,7 @@ class MatchKey(object):
           enumerate(self._subbed_in.split()) if word == "%M"]
 
         if len(self._char_indices_to_bind) != len(to_binds):
-            raise Exception("Number of format tokens doesn't" +\
+            raise MatchError("Number of format tokens doesn't" +\
               "match format args")
 
     def is_match(self, match_on):
@@ -79,8 +82,8 @@ class MatchKey(object):
                 next_char = None
 
             if char == '%' and next_char != 'M':
-                #preserve proper string formatting
                 to_sub = sub_ins[subbed_count]
+                #TODO: preserve proper string formatting
                 #TODO: change string formatting so it works with < 2.7
                 subbed_in += "{}".format(to_sub)
                 char_index += 2
