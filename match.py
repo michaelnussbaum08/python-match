@@ -2,7 +2,6 @@ import re
 
 from errors import MatchError
 
-#TODO: allow functions that determine whether a variable is acceptable
 #TODO: lots of error checking, making sure same amounts of things, proper types
 
 def match(match_on, cases):
@@ -23,10 +22,14 @@ class MatchKey(object):
     they can be bound as variables.'''
 
     def __init__(self, pattern, sub_ins, to_binds):
-        '''string, list of strings, list of strings
+        '''string, list of strings, list of (function, string)
         Strings in sub_ins will be subbed in for '%s' tokens.
-        Strings in to_binds will be variable names.'''
-        self._to_binds = to_binds
+        Functions in to_binds take one arg, the variable they
+        might bind, and they must return a boolean.  If the
+        function returns False then the pattern doesn't match.
+        Strings in to_binds will be bound to variable names.'''
+        self._to_binds = [to_bind[1] for to_bind in to_binds]
+        self._bind_conditions = [to_bind[0] for to_bind in to_binds]
         self._subbed_in = self._normal_sub(pattern, sub_ins)
         self._char_indices_to_bind = [m.start() for m in \
           re.finditer('%M', self._subbed_in)]
@@ -45,10 +48,22 @@ class MatchKey(object):
           regex_match.group(0) == match_on:
             match = True
             bindings = self._bindings(match_on)
+            if not self._valid_bind_conditions(bindings):
+                match = False
+                bindings = {}
         else:
             match = False
             bindings = {}
         return match, bindings
+
+    def _valid_bind_conditions(self, bindings):
+        '''dict mapping bindings to values -> boolean'''
+        is_valid = True
+        for index, condition_fun in enumerate(self._bind_conditions):
+            new_var = self._to_binds[index]
+            if not condition_fun(bindings[new_var]):
+                is_valid = False
+        return is_valid
 
     def _bindings(self, match_on):
         '''string -> dict mappings bindings to values'''
@@ -57,16 +72,6 @@ class MatchKey(object):
             bindings[var] = match_on.split()[\
               self._word_indices_to_bind[count]]
         return bindings
-
-    def _get_next_word(self, words, start_index):
-        '''string, integer -> string'''
-        total_index = None
-        for index, char in enumerate(words[start_index:]):
-            total_index = index + start_index
-            if char == ' ':
-                return words[start_index:total_index]
-            elif total_index == len(words) - 1:
-                return words[start_index:total_index+1]
 
     def _normal_sub(self, pattern, sub_ins):
         '''string, tuple -> string
