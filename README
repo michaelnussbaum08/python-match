@@ -1,0 +1,13 @@
+Racket's match function (http://docs.racket-lang.org/reference/match.html)
+is sweet. I'm trying to make something similar in Python.
+Check docstrings for more info.
+
+Usage:
+
+>>> from match import match, MatchKey
+>>>
+>>> match_cases = {MatchKey('%s is one %M', ['This'], ['wildcard']) : 'print wildcard',  
+... MatchKey('%s is another', ['This'], []) : 'print "two"'}
+>>> match('This is one example', match_cases)
+example
+ 
