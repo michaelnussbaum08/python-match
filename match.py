@@ -22,14 +22,13 @@ class MatchKey(object):
     they can be bound as variables.'''
 
     def __init__(self, pattern, sub_ins, to_binds):
-        '''string, list of strings, list of (function, string)
+        '''string, list of strings, list of strings and (function, string)
         Strings in sub_ins will be subbed in for '%s' tokens.
         Functions in to_binds take one arg, the variable they
         might bind, and they must return a boolean.  If the
         function returns False then the pattern doesn't match.
         Strings in to_binds will be bound to variable names.'''
-        self._to_binds = [to_bind[1] for to_bind in to_binds]
-        self._bind_conditions = [to_bind[0] for to_bind in to_binds]
+        self._bind_conditions, self._to_binds  = self._extract_binds(to_binds)
         self._subbed_in = self._normal_sub(pattern, sub_ins)
         self._char_indices_to_bind = [m.start() for m in \
           re.finditer('%M', self._subbed_in)]
@@ -56,13 +55,27 @@ class MatchKey(object):
             bindings = {}
         return match, bindings
 
+    def _extract_binds(self, to_binds):
+        '''list of strings and (function, string) ->
+            dictionary mapping ints to functions, list of strings'''
+        conditions = {}
+        var_names = []
+        for index, value in enumerate(to_binds):
+            if isinstance(value, str):
+                var_names.append(value)
+            elif isinstance(value, tuple):
+                var_names.append(value[1])
+                conditions[index] = value[0]
+        return conditions, var_names
+
     def _valid_bind_conditions(self, bindings):
         '''dict mapping bindings to values -> boolean'''
         is_valid = True
-        for index, condition_fun in enumerate(self._bind_conditions):
-            new_var = self._to_binds[index]
-            if not condition_fun(bindings[new_var]):
-                is_valid = False
+        for index, new_var in enumerate(self._to_binds):
+            if index in self._bind_conditions:
+                condition_fun = self._bind_conditions[index]
+                if not condition_fun(bindings[new_var]):
+                    is_valid = False
         return is_valid
 
     def _bindings(self, match_on):

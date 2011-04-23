@@ -2,8 +2,18 @@ import unittest
 
 from match import match, MatchKey
 from errors import MatchError
+'''
+class MatchTest(unittest.TestCase):
 
+   def test_empty(self):
+       result = match('test', {})
+       print result
+'''
 class MatchKeyTest(unittest.TestCase):
+
+    def setUp(self):
+        self.true_fun = lambda x: True
+        self.false_fun = lambda x: False
 
     def test_empty_pattern(self):
         match_key = MatchKey('', [], [])
@@ -100,6 +110,53 @@ class MatchKeyTest(unittest.TestCase):
         result = match_key.is_match('test yup almost')
         self.assertFalse(result[0])
         self.assertDictEqual(result[1], {})
+
+    def test_condition_false_no_match(self):
+        match_key = MatchKey('test %M', [], [(is_a, 'var1')])
+        result = match_key.is_match('test b')
+        self.assertFalse(result[0])
+        self.assertDictEqual(result[1], {})
+
+    def test_condition_is_match(self):
+        match_key = MatchKey('test %M', [], [(is_a, 'var1')])
+        result = match_key.is_match('test a')
+        self.assertTrue(result[0])
+        self.assertDictEqual(result[1], {'var1':'a'})
+
+    def test_condition_is_match_mixed_args(self):
+        match_key = MatchKey('test %M %M', [], [(is_a, 'var1'), 'var2'])
+        result = match_key.is_match('test a b')
+        self.assertTrue(result[0])
+        self.assertDictEqual(result[1], {'var1':'a', 'var2':'b'})
+
+    def test_extract_binds_strings(self):
+        match_key = MatchKey('', [], [])
+        binds = match_key._extract_binds(['var1', 'var2'])
+        self.assertEquals(binds[1], ['var1', 'var2'])
+        self.assertDictEqual(binds[0], {})
+
+    def test_extract_binds_tuples(self):
+        def not_is_a(x):
+            return not is_a(x)
+        match_key = MatchKey('', [], [])
+        binds = match_key._extract_binds([(is_a, 'var1'),
+          (not_is_a, 'var2')])
+        self.assertEquals(binds[1], ['var1', 'var2'])
+        self.assertDictEqual(binds[0], {0:is_a,
+          1:not_is_a})
+
+    def test_extract_binds_mixed_args(self):
+        match_key = MatchKey('', [], [])
+        binds = match_key._extract_binds([(is_a, 'var1'), 'var2'])
+        self.assertEquals(binds[1], ['var1', 'var2'])
+        self.assertDictEqual(binds[0], {0:is_a})
+
+def is_a(x):
+    if x == 'a':
+        return True
+    return False
+
+
 
 if __name__=="__main__":
     unittest.main()
