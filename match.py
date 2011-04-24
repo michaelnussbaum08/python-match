@@ -4,9 +4,11 @@ from errors import MatchError
 
 #TODO: lots of error checking, making sure same amounts of things, proper types
 
-def match(match_on, cases):
+def match(match_on, cases, local_vars={}, global_vars={}):
     '''string, ordered dictionary mapping MatchKey objects
     to strings of python code -> void, executes matching code'''
+    locals().update(local_vars)
+    globals().update(global_vars)
     for case, consequence in cases.items():
         match_result = case.is_match(match_on)
         if match_result[0]:
