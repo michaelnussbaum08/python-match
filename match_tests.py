@@ -1,19 +1,58 @@
 import unittest
+from mock import Mock
 
 from match import match, MatchKey
 from errors import MatchError
-'''
+
 class MatchTest(unittest.TestCase):
 
-   def test_empty(self):
-       result = match('test', {})
-       print result
-'''
-class MatchKeyTest(unittest.TestCase):
+    def test_just_match(self):
+        body = Mock()
+        match_cases = {MatchKey('test', [], []) \
+          : 'body()'}
+        match('test', match_cases, locals())
+        self.assertTrue(body.called)
 
-    def setUp(self):
-        self.true_fun = lambda x: True
-        self.false_fun = lambda x: False
+    def test_no_match(self):
+        body = Mock()
+        match_cases = {MatchKey('test', [], []) \
+          : 'body()'}
+        match('tests', match_cases, locals())
+        self.assertFalse(body.called)
+
+    def test_find_match(self):
+        body1 = Mock()
+        body2 = Mock()
+        match_cases = {
+            MatchKey('tests', [], []) : 'body1()',
+            MatchKey('test', [], []) : 'body2()'}
+        match('test', match_cases, locals())
+        self.assertFalse(body1.called)
+        self.assertTrue(body2.called)
+
+    def test_harder_match(self):
+        body1 = Mock()
+        body2 = Mock()
+        match_cases = {
+            MatchKey('test %s %M %M', ['this'], ['var1', 'var2']) : 'body1()',
+            MatchKey('test %s %M', ['this'], ['var1']) : 'body2(var1)'}
+        match('test this case', match_cases, locals())
+        self.assertFalse(body1.called)
+        body2.assert_called_once_with('case')
+
+    def test_condition_match(self):
+        body1 = Mock()
+        body2 = Mock()
+        match_cases = {
+            MatchKey('test %M', [], [(lambda x : False, 'var1')]) \
+            : 'body1()',
+            MatchKey('test %M', [], [(lambda x : x == 'a', 'var1')]) \
+            : 'body2()'}
+        match('test a', match_cases, locals())
+        self.assertFalse(body1.called)
+        self.assertTrue(body2.called)
+
+class MatchKeyTest(unittest.TestCase):
 
     def test_empty_pattern(self):
         match_key = MatchKey('', [], [])
@@ -152,9 +191,7 @@ class MatchKeyTest(unittest.TestCase):
         self.assertDictEqual(binds[0], {0:is_a})
 
 def is_a(x):
-    if x == 'a':
-        return True
-    return False
+    retun x == 'a':
 
 
 
