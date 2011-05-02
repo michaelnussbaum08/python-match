@@ -3,6 +3,7 @@ import re
 from errors import MatchError
 
 #TODO: lots of error checking, making sure same amounts of things, proper types
+#TODO: match things other then strings
 
 def match(match_on, cases, local_vars={}, global_vars={}):
     '''string, ordered dictionary mapping MatchKey objects
@@ -103,9 +104,7 @@ class MatchKey(object):
 
             if char == '%' and next_char != 'M':
                 to_sub = sub_ins[subbed_count]
-                #TODO: preserve proper string formatting
-                #TODO: change string formatting so it works with < 2.7
-                subbed_in += "{}".format(to_sub)
+                subbed_in += str(to_sub)
                 char_index += 2
                 subbed_count += 1
             else:
