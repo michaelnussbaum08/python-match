@@ -191,7 +191,7 @@ class MatchKeyTest(unittest.TestCase):
         self.assertDictEqual(binds[0], {0:is_a})
 
 def is_a(x):
-    retun x == 'a':
+    return x == 'a'
 
 
 if __name__=="__main__":
