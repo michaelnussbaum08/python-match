@@ -1,3 +1,4 @@
+import inspect
 import re
 
 from errors import MatchError
@@ -6,11 +7,14 @@ from errors import MatchError
 #TODO: lots of error checking, making sure same amounts of things, proper types
 #TODO: match things other then strings
 
-def match(match_on, cases, local_vars={}, global_vars={}):
+def match(match_on, cases):
     '''string, ordered dictionary mapping MatchKey objects
     to strings of python code -> void, executes matching code'''
-    locals().update(local_vars)
-    globals().update(global_vars)
+    caller_data = inspect.getouterframes(inspect.currentframe())[0][0]
+    caller_locals = caller_data.f_locals
+    caller_globals = caller_data.f_globals
+    locals().update(caller_locals)
+    globals().update(caller_globals)
     for case, consequence in cases.items():
         match_result = case.is_match(match_on)
         if match_result[0]:

@@ -10,14 +10,14 @@ class MatchTest(unittest.TestCase):
         body = Mock()
         match_cases = {MatchKey('test', [], []) \
           : 'body()'}
-        match('test', match_cases, locals())
+        match('test', match_cases)
         self.assertTrue(body.called)
 
     def test_no_match(self):
         body = Mock()
         match_cases = {MatchKey('test', [], []) \
           : 'body()'}
-        match('tests', match_cases, locals())
+        match('tests', match_cases)
         self.assertFalse(body.called)
 
     def test_find_match(self):
@@ -26,7 +26,7 @@ class MatchTest(unittest.TestCase):
         match_cases = {
             MatchKey('tests', [], []) : 'body1()',
             MatchKey('test', [], []) : 'body2()'}
-        match('test', match_cases, locals())
+        match('test', match_cases)
         self.assertFalse(body1.called)
         self.assertTrue(body2.called)
 
@@ -34,9 +34,10 @@ class MatchTest(unittest.TestCase):
         body1 = Mock()
         body2 = Mock()
         match_cases = {
-            MatchKey('test %s %M %M', ['this'], ['var1', 'var2']) : 'body1()',
+            MatchKey('test %s %M %M', ['this'], ['var1', 'var2']) : \
+              'body1()',
             MatchKey('test %s %M', ['this'], ['var1']) : 'body2(var1)'}
-        match('test this case', match_cases, locals())
+        match('test this case', match_cases)
         self.assertFalse(body1.called)
         body2.assert_called_once_with('case')
 
@@ -48,7 +49,7 @@ class MatchTest(unittest.TestCase):
             : 'body1()',
             MatchKey('test %M', [], [(lambda x : x == 'a', 'var1')]) \
             : 'body2()'}
-        match('test a', match_cases, locals())
+        match('test a', match_cases)
         self.assertFalse(body1.called)
         self.assertTrue(body2.called)
 
