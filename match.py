@@ -2,6 +2,7 @@ import re
 
 from errors import MatchError
 
+#TODO: bind locals and globals with inspect.getouterframes(inspect.currentframe())[0][0].f_locals
 #TODO: lots of error checking, making sure same amounts of things, proper types
 #TODO: match things other then strings
 
