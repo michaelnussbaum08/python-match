@@ -3,14 +3,13 @@ import re
 
 from errors import MatchError
 
-#TODO: bind locals and globals with inspect.getouterframes(inspect.currentframe())[0][0].f_locals
 #TODO: lots of error checking, making sure same amounts of things, proper types
 #TODO: match things other then strings
 
 def match(match_on, cases):
     '''string, ordered dictionary mapping MatchKey objects
     to strings of python code -> void, executes matching code'''
-    caller_data = inspect.getouterframes(inspect.currentframe())[0][0]
+    caller_data = inspect.getouterframes(inspect.currentframe())[1][0]
     caller_locals = caller_data.f_locals
     caller_globals = caller_data.f_globals
     locals().update(caller_locals)
