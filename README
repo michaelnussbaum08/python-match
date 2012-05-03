@@ -1,13 +1,23 @@
-Racket's match function (http://docs.racket-lang.org/reference/match.html)
-is sweet. I'm trying to make something similar in Python.
-Check docstrings for more info.
+After using the match function in Racket in my Compiles class I decided I
+wanted to write something similar in Python for fun and for the sake of
+exploring a little bit of Python's accessible internals.
+
+The match function takes a string and a dictionary. The string is being matched
+on by the keys of the dictionary, the values of which are strings of code to
+execute. The keys of the dictionary are MatchKey objects which each contain
+certain patterns. If the string given the match function corresponds with the
+pattern of a MatchKey then the string value associated with the key in the
+input dictionary is executed in the context of the calling scope. The MatchKey
+may also contain variable names to bind to elements of the input string which
+are then also available during execution.
 
 Usage:
 
 >>> from match import match, MatchKey
 >>>
->>> match_cases = {MatchKey('%s is one %M', ['This'], ['wildcard']) : 'print wildcard',  
-... MatchKey('%s is another', ['This'], []) : 'print "two"'}
+>>> match_cases = {
+... MatchKey('%s is one %M', ['This'], ['wildcard']) : 'print wildcard',
+... MatchKey('%s is another', ['This'], []) : 'print "two"'
+... }
 >>> match('This is one example', match_cases)
 example
- 

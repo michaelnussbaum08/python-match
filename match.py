@@ -3,15 +3,14 @@ import re
 
 from errors import MatchError
 
-#TODO: lots of error checking, making sure same amounts of things, proper types
-#TODO: match things other then strings
 
 def match(match_on, cases):
     '''string, ordered dictionary mapping MatchKey objects
-    to strings of python code -> void, executes matching code'''
-    caller_data = inspect.getouterframes(inspect.currentframe())[1][0]
-    caller_locals = caller_data.f_locals
-    caller_globals = caller_data.f_globals
+    to strings of python code -> void, executes matching code
+    using variables from the calling scope'''
+    caller_frame = inspect.getouterframes(inspect.currentframe())[1][0]
+    caller_locals = caller_frame.f_locals
+    caller_globals = caller_frame.f_globals
     locals().update(caller_locals)
     globals().update(caller_globals)
     for case, consequence in cases.items():
@@ -21,20 +20,27 @@ def match(match_on, cases):
             locals().update(new_vars)
             exec(consequence)
 
+
 class MatchKey(object):
     '''To be used as a dictionary key in the match function.
     Uses a pattern string to define a regex to match on.
-    Identifies values identified by "%M" tokens in the pattern,
+    Picks out values identified by "%M" tokens in the pattern,
     which are represented as wildcards in the regex, so that
     they can be bound as variables.'''
 
     def __init__(self, pattern, sub_ins, to_binds):
-        '''string, list of strings, list of strings and (function, string)
+        '''
+        pattern -- string
+        sub_ins -- list of strings
+        to_binds -- list of strings or list of (function, string)
+
         Strings in sub_ins will be subbed in for '%s' tokens.
         Functions in to_binds take one arg, the variable they
         might bind, and they must return a boolean.  If the
         function returns False then the pattern doesn't match.
-        Strings in to_binds will be bound to variable names.'''
+        Strings in to_binds will be bound to variable names with values
+        coressponding to the words filling %M tokens.
+        '''
         self._bind_conditions, self._to_binds  = self._extract_binds(to_binds)
         self._subbed_in = self._normal_sub(pattern, sub_ins)
         self._char_indices_to_bind = [m.start() for m in \
@@ -47,7 +53,8 @@ class MatchKey(object):
               "match format args")
 
     def is_match(self, match_on):
-        '''string -> boolean, dict mapping bindings to values'''
+        '''string -> boolean, dict mapping variable names to be bound to
+        values'''
         key = self._get_key()
         regex_match = re.match(key, match_on)
         if hasattr(regex_match, 'group') and \
@@ -63,7 +70,7 @@ class MatchKey(object):
         return match, bindings
 
     def _extract_binds(self, to_binds):
-        '''list of strings and (function, string) ->
+        '''list of strings or list of (function, string) ->
             dictionary mapping ints to functions, list of strings'''
         conditions = {}
         var_names = []
@@ -76,7 +83,9 @@ class MatchKey(object):
         return conditions, var_names
 
     def _valid_bind_conditions(self, bindings):
-        '''dict mapping bindings to values -> boolean'''
+        '''Returns a boolean
+        bindings -- dict mapping variable names to bind to values
+        '''
         is_valid = True
         for index, new_var in enumerate(self._to_binds):
             if index in self._bind_conditions:
@@ -86,7 +95,8 @@ class MatchKey(object):
         return is_valid
 
     def _bindings(self, match_on):
-        '''string -> dict mappings bindings to values'''
+        '''Returns dict mapping variable names to bind to values
+        match_on -- string'''
         bindings = {}
         for count, var in enumerate(self._to_binds):
             bindings[var] = match_on.split()[\
@@ -118,7 +128,7 @@ class MatchKey(object):
 
     def _get_key(self):
         '''void -> string
-        Replaces %M in _subbed_in with regex wildcards'''
+        Replaces %M in _subbed_in with regex wildcards and returns it'''
         match_string = ''
         char_index = 0
         while char_index < len(self._subbed_in):
